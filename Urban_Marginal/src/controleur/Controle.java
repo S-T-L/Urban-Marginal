@@ -83,6 +83,18 @@ public class Controle implements AsyncResponse, Global {
 	}
 	
 	/**
+	 * Information provenant de la vue Arene
+	 * @param info information � transf�rer
+	 */
+	public void evenementArene(Object info) {
+		if(info instanceof String) {
+			((JeuClient)this.leJeu).envoi(TCHAT+STRINGSEPARE+info);
+		}else if (info instanceof Integer) {
+			((JeuClient)this.leJeu).envoi(ACTION+STRINGSEPARE+info);
+		}
+	}
+	
+	/**
 	 * Demande provenant de JeuServeur
 	 * @param ordre ordre � ex�cuter
 	 * @param info information � traiter
@@ -103,26 +115,10 @@ public class Controle implements AsyncResponse, Global {
 			break;
 		case AJOUTPHRASE :
 			this.frmArene.ajoutTchat((String)info);
-			//renvoyer à tous les clients le contenu complet du tchat en appelant la méthode envoi sur lejeu
 			((JeuServeur)this.leJeu).envoi(this.frmArene.getTxtChat());
 			break;
 		}
-		
 	}
-	/**
-	 * info provenant de la vue
-	 * @param info
-	 */
-	public void evenementArene(Object info) {
-		if(info instanceof String ) {
-		((JeuClient)this.leJeu).envoi(TCHAT+STRINGSEPARE+info);
-		}
-		else if (info instanceof Integer) {
-			((JeuClient)this.leJeu).envoi(ACTION+STRINGSEPARE+info);
-		}
-		}
-		
-	
 	
 	/**
 	 * Demande provenant de JeuClient
@@ -139,6 +135,10 @@ public class Controle implements AsyncResponse, Global {
 			break;
 		case MODIFTCHAT :
 			this.frmArene.setTxtChat((String)info);
+			break;
+		case JOUESON :
+			this.frmArene.joueSon((Integer)info);
+			break;
 		}
 	}
 

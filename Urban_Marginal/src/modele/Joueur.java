@@ -3,7 +3,6 @@ package modele;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.swing.ImageIcon;
@@ -70,13 +69,20 @@ public class Joueur extends Objet implements Global {
 	}
 
 	/**
+	 * @return the orientation
+	 */
+	public int getOrientation() {
+		return orientation;
+	}
+
+	/**
 	 * Initialisation d'un joueur (pseudo et num�ro, calcul de la 1�re position, affichage, cr�ation de la boule)
 	 * @param pseudo pseudo du joueur
 	 * @param numPerso num�ro du personnage
 	 * @param lesJoueurs collection contenant tous les joueurs
 	 * @param lesMurs collection contenant les murs
 	 */
-	public void initPerso(String pseudo, int numPerso, Collection<Joueur>lesJoueurs, ArrayList<Mur> lesMurs) {
+	public void initPerso(String pseudo, int numPerso, Collection lesJoueurs, Collection lesMurs) {
 		this.pseudo = pseudo;
 		this.numPerso = numPerso;
 		System.out.println("joueur "+pseudo+" - num perso "+numPerso+" cr��");
@@ -86,11 +92,14 @@ public class Joueur extends Objet implements Global {
 		this.message = new JLabel();
 		message.setHorizontalAlignment(SwingConstants.CENTER);
 		message.setFont(new Font("Dialog", Font.PLAIN, 8));
+		// cr�ation de la boule
+		this.boule = new Boule(this.jeuServeur);
 		// calcul de la premi�re position du personnage
 		this.premierePosition(lesJoueurs, lesMurs);
-		// demande d'ajout du label du personnage et du message dans l'ar�ne du serveur
+		// demande d'ajout du label du personnage, du message et de la boule dans l'ar�ne du serveur
 		this.jeuServeur.ajoutJLabelJeuArene(jLabel);
 		this.jeuServeur.ajoutJLabelJeuArene(message);
+		this.jeuServeur.ajoutJLabelJeuArene(boule.getjLabel());
 		// demande d'affichage du personnage
 		this.affiche(MARCHE, this.etape);
 	}
@@ -100,12 +109,12 @@ public class Joueur extends Objet implements Global {
 	 * @param lesJoueurs collection contenant tous les joueurs
 	 * @param lesMurs collection contenant les murs
 	 */
-	private void premierePosition(Collection<Joueur> lesJoueurs, ArrayList<Mur> lesMurs) {
+	private void premierePosition(Collection lesJoueurs, Collection lesMurs) {
 		jLabel.setBounds(0, 0, LARGEURPERSO, HAUTEURPERSO);
 		do {
 			posX = (int) Math.round(Math.random() * (LARGEURARENE - LARGEURPERSO)) ;
 			posY = (int) Math.round(Math.random() * (HAUTEURARENE - HAUTEURPERSO - HAUTEURMESSAGE)) ;
-		}while(this.toucheJoueur(lesJoueurs) || this.toucheMur(lesMurs));
+		}while(toucheCollectionObjets(lesJoueurs)!=null || toucheCollectionObjets(lesMurs)!=null);
 	}
 	
 	/**
@@ -117,6 +126,7 @@ public class Joueur extends Objet implements Global {
 		// positionnement du personnage et affectation de la bonne image
 		super.jLabel.setBounds(posX, posY, LARGEURPERSO, HAUTEURPERSO);
 		String chemin = CHEMINPERSONNAGES+PERSO+this.numPerso+etat+etape+"d"+this.orientation+EXTFICHIERPERSO;
+System.out.println(chemin);
 		URL resource = getClass().getClassLoader().getResource(chemin);
 		super.jLabel.setIcon(new ImageIcon(resource));
 		// positionnement et remplissage du message sous le perosnnage
@@ -132,7 +142,7 @@ public class Joueur extends Objet implements Global {
 	 * @param lesMurs collection de murs
 	 * @param lesJoueurs collection de joueurs
 	 */
-	public void action(Integer action, Collection<Joueur> lesJoueurs, ArrayList<Mur> lesMurs) {
+	public void action(Integer action, Collection lesJoueurs, Collection lesMurs) {
 		switch(action){
 		case KeyEvent.VK_LEFT :
 			orientation = GAUCHE; 
@@ -147,7 +157,12 @@ public class Joueur extends Objet implements Global {
 			break;
 		case KeyEvent.VK_DOWN :
 			posY = deplace(posY,  action, PAS, HAUTEURARENE - HAUTEURPERSO - HAUTEURMESSAGE, lesJoueurs, lesMurs) ;
-			break;			
+			break;	
+		case KeyEvent.VK_SPACE :
+			if(!this.boule.getjLabel().isVisible()) {
+				this.boule.tireBoule(this, lesMurs);
+			}
+			break;
 		}
 		this.affiche(MARCHE, this.etape);
 	}
@@ -166,8 +181,8 @@ public class Joueur extends Objet implements Global {
 			int action, // gauche, droite, haut, bas
 			int lepas, // valeur du d�placement (positif ou n�gatif)
 			int max, // valeur � ne pas d�passer
-			Collection<Joueur> lesJoueurs, // les autres joueurs (pour �viter les collisions)
-			ArrayList<Mur> lesMurs) { // les murs (pour �viter les collisions)
+			Collection lesJoueurs, // les autres joueurs (pour �viter les collisions)
+			Collection lesMurs) { // les murs (pour �viter les collisions)
 		int ancpos = position ;
 		position += lepas ;
 		position = Math.max(position, 0) ;
@@ -178,7 +193,7 @@ public class Joueur extends Objet implements Global {
 			posY = position ;
 		}
 		// controle s'il y a collision, dans ce cas, le personnage reste sur place
-		if (toucheJoueur(lesJoueurs) || toucheMur(lesMurs)) {
+		if (toucheCollectionObjets(lesJoueurs)!=null || toucheCollectionObjets(lesMurs)!=null) {
 			position = ancpos ;
 		}
 		// passe � l'�tape suivante de l'animation de la marche
@@ -187,45 +202,17 @@ public class Joueur extends Objet implements Global {
 	}
 
 	/**
-	 * Contr�le si le joueur touche un des autres joueurs
-	 * @param lesJoueurs collection contenant tous les joueurs
-	 * @return true si le joueur touche un autre joueur
-	 */
-	private Boolean toucheJoueur(Collection<Joueur> lesJoueurs) {
-		for(Joueur unJoueur : lesJoueurs) {
-			if(!this.equals(unJoueur)) {
-				if(super.toucheObjet(unJoueur)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	* Contr�le si le joueur touche un des murs
-	 * @param lesMurs collection contenant tous les murs
-	 * @return true si le joueur touche un mur
-	 */
-	private Boolean toucheMur(ArrayList<Mur> lesMurs) {
-		for(Mur unMur : lesMurs) {
-			if(super.toucheObjet(unMur)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
 	 * Gain de points de vie apr�s avoir touch� un joueur
 	 */
 	public void gainVie() {
+		this.vie += GAIN;
 	}
 	
 	/**
 	 * Perte de points de vie apr�s avoir �t� touch� 
 	 */
 	public void perteVie() {
+		this.vie = Math.max(0, this.vie - PERTE);
 	}
 	
 	/**
@@ -233,7 +220,7 @@ public class Joueur extends Objet implements Global {
 	 * @return true si vie = 0
 	 */
 	public Boolean estMort() {
-		return null;
+		return (this.vie == 0);
 	}
 	
 	/**

@@ -42,15 +42,12 @@ public class JeuClient extends Jeu implements Global {
 				// arriv�e du panel de jeu
 				this.controle.evenementJeuClient(MODIFPANELJEU, info);
 			}
+		} else if(info instanceof String) {
+			this.controle.evenementJeuClient(MODIFTCHAT, info);
+		} else if(info instanceof Integer) {
+			this.controle.evenementJeuClient(JOUESON, info);
 		}
-			//test pour savoir si ce qui est reçu est de type string
-			else if (info instanceof String)
-			{
-				this.controle.evenementJeuClient(MODIFTCHAT, info);
-			}
-			
-		}
-	
+	}
 	
 	@Override
 	public void deconnexion() {

@@ -14,6 +14,7 @@ import javax.swing.SwingConstants;
 
 import controleur.Controle;
 import controleur.Global;
+import outils.son.Son;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -26,7 +27,7 @@ import java.awt.Dimension;
 public class ChoixJoueur extends JFrame implements Global {
 
 	/**
-	 * Panel général
+	 * Panel gï¿½nï¿½ral
 	 */
 	private JPanel contentPane;
 	/**
@@ -38,28 +39,34 @@ public class ChoixJoueur extends JFrame implements Global {
 	 */
 	private JLabel lblPersonnage;
 	/**
-	 * Instance du contrôleur pour communiquer avec lui
+	 * Instance du contrï¿½leur pour communiquer avec lui
 	 */
 	private Controle controle;
 	/**
-	 * Numéro du personnage sélectionné
+	 * Numï¿½ro du personnage sï¿½lectionnï¿½
 	 */
 	private int numPerso;
 
+	private Son welcome;
+	private Son precedent;
+	private Son suivant;
+	private Son go;
 	/**
-	 * Clic sur la flèche "précédent" pour afficher le personnage précédent
+	 * Clic sur la flï¿½che "prï¿½cï¿½dent" pour afficher le personnage prï¿½cï¿½dent
 	 */
 	private void lblPrecedent_clic() {
 		numPerso = ((numPerso+1)%NBPERSOS)+1;
 		affichePerso();
+		precedent.play();
 	}
 	
 	/**
-	 * Clic sur la flèche "suivant" pour afficher le personnage suivant
+	 * Clic sur la flï¿½che "suivant" pour afficher le personnage suivant
 	 */
 	private void lblSuivant_clic() {
 		numPerso = (numPerso%NBPERSOS)+1 ;
 		affichePerso();
+		suivant.play();
 	}
 	
 	/**
@@ -71,11 +78,12 @@ public class ChoixJoueur extends JFrame implements Global {
 			this.txtPseudo.requestFocus();
 		} else {
 			this.controle.evenementChoixJoueur(this.txtPseudo.getText(), numPerso);
+			go.play();
 		}
 	}
 	
 	/**
-	 * Affichage du personnage correspondant au numéro numPerso
+	 * Affichage du personnage correspondant au numï¿½ro numPerso
 	 */
 	private void affichePerso() {
 		String chemin = CHEMINPERSONNAGES+PERSO+this.numPerso+MARCHE+1+"d"+1+EXTFICHIERPERSO;
@@ -91,7 +99,7 @@ public class ChoixJoueur extends JFrame implements Global {
 	}
 	
 	/**
-	 * Change le curseur de la souris en forme de doigt pointé
+	 * Change le curseur de la souris en forme de doigt pointï¿½
 	 */
 	private void sourisDoigt() {
 		contentPane.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -99,7 +107,7 @@ public class ChoixJoueur extends JFrame implements Global {
 
 	/**
 	 * Create the frame.
-	 * @param controle instance du contrôleur
+	 * @param controle instance du contrï¿½leur
 	 */
 	public ChoixJoueur(Controle controle) {
 		// Dimension de la frame en fonction de son contenu
@@ -185,12 +193,19 @@ public class ChoixJoueur extends JFrame implements Global {
 		lblFond.setIcon(new ImageIcon(resource));		
 		contentPane.add(lblFond);
 		
-		// récupération de l'instance de Controle
+		// rï¿½cupï¿½ration de l'instance de Controle
 		this.controle = controle;
 		
 		// affichage du premier personnage
 		this.numPerso = 1;
 		this.affichePerso();
+		
+		// rï¿½cupï¿½ration des sons
+		precedent = new Son(getClass().getClassLoader().getResource(SONPRECEDENT));
+		suivant = new Son(getClass().getClassLoader().getResource(SONSUIVANT));
+		go = new Son(getClass().getClassLoader().getResource(SONGO));
+		welcome = new Son(getClass().getClassLoader().getResource(SONWELCOME));
+		welcome.play();
 
 		// positionnement sur la zone de saisie
 		txtPseudo.requestFocus();
