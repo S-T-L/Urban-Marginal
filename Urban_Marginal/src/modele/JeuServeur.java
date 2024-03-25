@@ -48,16 +48,17 @@ public class JeuServeur extends Jeu implements Global {
 			String pseudo = infos[1];
 			int numPerso = Integer.parseInt(infos[2]);
 			this.lesJoueurs.get(connection).initPerso(pseudo, numPerso, this.lesJoueurs.values(), this.lesMurs);
-			//avoir l'info qu'un joueur se connecte dans le chat
-			String premierMessage = "***"+pseudo+" vient de se connecter ***";
+			String premierMessage = "*** "+pseudo+" vient de se connecter ***";
 			this.controle.evenementJeuServeur(AJOUTPHRASE, premierMessage);
 			break;
 		case TCHAT :
 			String phrase = infos[1];
-			//recuperer le pseudo du joueur dont la connexion à été recue en parametre 
 			phrase = this.lesJoueurs.get(connection).getPseudo()+" > "+phrase;
-			//demande au controleur d'ajouter la phrase dans l'arene en lui envoyant l'odre ajout phrase
 			this.controle.evenementJeuServeur(AJOUTPHRASE, phrase);
+			break;
+		case ACTION :
+			Integer action = Integer.parseInt(infos[1]);
+			this.lesJoueurs.get(connection).action(action, this.lesJoueurs.values(), this.lesMurs);
 			break;
 		}
 	}
@@ -66,26 +67,30 @@ public class JeuServeur extends Jeu implements Global {
 	public void deconnexion() {
 	}
 
-	/**
-	 * Envoi d'une information vers tous les clients
-	 * fais appel plusieurs fois � l'envoi de la classe Jeu
-	 */
-	public void envoi(Object info) {
-		for(Connection connection : this.lesJoueurs.keySet()) {
-			//envoi l'information a chaque joueur a l'aide de la méthode envoi de la classe mere
-			super.envoi(connection, info);
-		}
+	public void ajoutJLabelJeuArene(JLabel jLabel) {
+		this.controle.evenementJeuServeur(AJOUTJLABELJEU, jLabel);
 	}
 	
 	/**
-	 * 
+	 * Envoi d'une information vers tous les clients
+	 * fais appel plusieurs fois � l'envoi de la classe Jeu
+	 * @param info information � envoyer
+	 */
+	public void envoi(Object info) {
+		for(Connection connection : this.lesJoueurs.keySet()) {
+			super.envoi(connection, info);
+		}		
+	}
+
+	/**
+	 * Envoi du panel de jeu � tous les joueurs
 	 */
 	public void envoiJeuATous() {
 		for(Connection connection : this.lesJoueurs.keySet()) {
 			this.controle.evenementJeuServeur(MODIFPANELJEU, connection);
 		}
 	}
-
+	
 	/**
 	 * G�n�ration des murs
 	 */
@@ -95,11 +100,5 @@ public class JeuServeur extends Jeu implements Global {
 			this.controle.evenementJeuServeur(AJOUTMUR, lesMurs.get(lesMurs.size()-1).getjLabel());
 		}
 	}
-	/**
-	 * 
-	 * @param jLabel
-	 */
-	public void ajoutLabelJeuArene(JLabel jLabel) {
-		this.controle.evenementJeuServeur(AJOUTJLABELJEU, jLabel);
-	}
+	
 }

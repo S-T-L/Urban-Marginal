@@ -178,6 +178,18 @@ public interface Global {
 	String AJOUTPHRASE = "ajout phrase";
 	
 	String MODIFTCHAT = "modif tchat";
+	
+	String ACTION = "action";
+	
+	/**
+	 * taille du pas quand le personnage avance (nombre de pixels)
+	 */
+	int PAS = 10;
+	
+	/**
+	 * nombre d'�tapes (d'images) pour donner l'impresson de marche
+	 */
+	int NBETAPESMARCHE = 4;
 
 
 

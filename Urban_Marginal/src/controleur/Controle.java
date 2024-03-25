@@ -113,11 +113,16 @@ public class Controle implements AsyncResponse, Global {
 	 * info provenant de la vue
 	 * @param info
 	 */
-	public void evenementArene(String info) {
+	public void evenementArene(Object info) {
+		if(info instanceof String ) {
 		((JeuClient)this.leJeu).envoi(TCHAT+STRINGSEPARE+info);
+		}
+		else if (info instanceof Integer) {
+			((JeuClient)this.leJeu).envoi(ACTION+STRINGSEPARE+info);
+		}
+		}
 		
-		
-	}
+	
 	
 	/**
 	 * Demande provenant de JeuClient
@@ -133,7 +138,7 @@ public class Controle implements AsyncResponse, Global {
 			this.frmArene.setJpnJeu((JPanel)info);
 			break;
 		case MODIFTCHAT :
-			this.frmArene.setTextChat((String)info);
+			this.frmArene.setTxtChat((String)info);
 		}
 	}
 
